@@ -618,7 +618,7 @@
         <div class="metric">
           <div class="m-label">Bank &amp; agency cover</div>
           <div class="m-value" id="m-cover">—</div>
-          <div class="m-sub">est. at £8,051 per staff member</div>
+          <div class="m-sub">est. at £2,083 per staff member</div>
         </div>
         <div class="metric">
           <div class="m-label">Productivity loss</div>
@@ -748,8 +748,8 @@ function syncInput(which) {
 }
 
 // Bank & agency cover cost per staff member:
-// derived from NHS benchmark data (£4,227k total across 525 staff)
-const AVG_COVER_PER_STAFF = 8051;
+// derived from £5m total spend across 2,400 staff
+const AVG_COVER_PER_STAFF = 2083;
 
 function calc() {
   const nurseCount = +document.getElementById('nurseCount').value || 0;
