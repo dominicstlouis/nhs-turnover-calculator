@@ -805,9 +805,9 @@ function calc() {
   const ahpLeavers   = Math.round(ahpCount   * turnover);
   const totalLeavers = nurseLeavers + consLeavers + resLeavers + adminLeavers + ahpLeavers;
 
-  const recruitTotal = (nurseLeavers * nurseCost) + (consLeavers * consCost) + (resLeavers * resCost) + (adminLeavers * adminCost) + (ahpLeavers * ahpCost);
-  const coverTotal   = totalStaff * AVG_COVER_PER_STAFF;
-  const prodLoss     = totalLeavers * avgSalary * 0.25;
+  const recruitTotal = ((nurseLeavers * nurseCost) + (consLeavers * consCost) + (resLeavers * resCost) + (adminLeavers * adminCost) + (ahpLeavers * ahpCost)) * 0.5;
+  const coverTotal   = totalStaff * AVG_COVER_PER_STAFF * 0.5;
+  const prodLoss     = totalLeavers * avgSalary * 0.25 * 0.5;
   const grandTotal   = recruitTotal + coverTotal + prodLoss;
   const perLeaver    = totalLeavers > 0 ? grandTotal / totalLeavers : 0;
 
