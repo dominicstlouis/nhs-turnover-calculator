@@ -474,6 +474,16 @@
         <input type="number" id="resCount" value="120" min="0" oninput="calc()">
       </div>
     </div>
+    <div class="input-grid cols-2" style="margin-top:1rem;">
+      <div class="field">
+        <label>Average salary — all staff</label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">£</span>
+          <input type="number" id="avgSalary" value="43" min="0" oninput="calc()">
+        </div>
+        <span class="hint">thousands (mean NHS FTE: £43.2k)</span>
+      </div>
+    </div>
   </div>
 
   <!-- Inputs: Turnover -->
@@ -498,56 +508,6 @@
       </div>
     </div>
     <p class="assumption-note">NHS trust turnover typically runs 8–15%. The NHS Long Term Workforce Plan aims to reduce leavers by 130,000 over 15 years through improved retention. <a href="https://www.england.nhs.uk/long-read/nhs-long-term-workforce-plan-2/" target="_blank">Source: NHS England</a></p>
-  </div>
-
-  <!-- Inputs: Bank & Agency -->
-  <div class="card">
-    <div class="card-title">Bank &amp; agency spend (£k per year)</div>
-    <div class="input-grid cols-3">
-      <div class="field">
-        <label>Bank — nursing</label>
-        <div class="input-wrap has-prefix">
-          <span class="prefix">£</span>
-          <input type="number" id="bankNurse" value="1449" min="0" oninput="calc()">
-        </div>
-        <span class="hint">thousands</span>
-      </div>
-      <div class="field">
-        <label>Bank — consultants</label>
-        <div class="input-wrap has-prefix">
-          <span class="prefix">£</span>
-          <input type="number" id="bankCons" value="1361" min="0" oninput="calc()">
-        </div>
-        <span class="hint">thousands</span>
-      </div>
-      <div class="field">
-        <label>Bank — resident doctors</label>
-        <div class="input-wrap has-prefix">
-          <span class="prefix">£</span>
-          <input type="number" id="bankRes" value="457" min="0" oninput="calc()">
-        </div>
-        <span class="hint">thousands</span>
-      </div>
-    </div>
-    <div class="input-grid cols-2" style="margin-top:1rem;">
-      <div class="field">
-        <label>Total agency spend</label>
-        <div class="input-wrap has-prefix">
-          <span class="prefix">£</span>
-          <input type="number" id="agencySpend" value="960" min="0" oninput="calc()">
-        </div>
-        <span class="hint">thousands per year</span>
-      </div>
-      <div class="field">
-        <label>Average salary — all staff</label>
-        <div class="input-wrap has-prefix">
-          <span class="prefix">£</span>
-          <input type="number" id="avgSalary" value="43" min="0" oninput="calc()">
-        </div>
-        <span class="hint">thousands (mean NHS FTE: £43.2k)</span>
-      </div>
-    </div>
-    <p class="assumption-note">Agency staff cost on average 20% more than NHS bank staff. NHS England agency spend was £2.44bn in 2020/21. <a href="https://commonslibrary.parliament.uk/research-briefings/cdp-2023-0038/" target="_blank">Source: House of Commons Library</a></p>
   </div>
 
   <!-- Inputs: Replacement costs -->
@@ -600,7 +560,7 @@
         <div class="metric">
           <div class="m-label">Bank &amp; agency cover</div>
           <div class="m-value" id="m-cover">—</div>
-          <div class="m-sub">your actual spend</div>
+          <div class="m-sub">est. at £8,051 per staff member</div>
         </div>
         <div class="metric">
           <div class="m-label">Productivity loss</div>
@@ -707,28 +667,29 @@ function syncInput(which) {
   calc();
 }
 
+// Bank & agency cover cost per staff member:
+// derived from NHS benchmark data (£4,227k total across 525 staff)
+const AVG_COVER_PER_STAFF = 8051;
+
 function calc() {
   const nurseCount = +document.getElementById('nurseCount').value || 0;
   const consCount  = +document.getElementById('consCount').value  || 0;
   const resCount   = +document.getElementById('resCount').value   || 0;
   const turnover   = (+document.getElementById('turnoverRate').value || 0) / 100;
   const target     = (+document.getElementById('targetRate').value   || 0) / 100;
-  const bankNurse  = (+document.getElementById('bankNurse').value  || 0) * 1000;
-  const bankCons   = (+document.getElementById('bankCons').value   || 0) * 1000;
-  const bankRes    = (+document.getElementById('bankRes').value    || 0) * 1000;
-  const agency     = (+document.getElementById('agencySpend').value || 0) * 1000;
   const avgSalary  = (+document.getElementById('avgSalary').value  || 0) * 1000;
   const nurseCost  = +document.getElementById('nurseCost').value  || 0;
   const consCost   = +document.getElementById('consCost').value   || 0;
   const resCost    = +document.getElementById('resCost').value    || 0;
 
+  const totalStaff   = nurseCount + consCount + resCount;
   const nurseLeavers = Math.round(nurseCount * turnover);
   const consLeavers  = Math.round(consCount  * turnover);
   const resLeavers   = Math.round(resCount   * turnover);
   const totalLeavers = nurseLeavers + consLeavers + resLeavers;
 
   const recruitTotal = (nurseLeavers * nurseCost) + (consLeavers * consCost) + (resLeavers * resCost);
-  const coverTotal   = bankNurse + bankCons + bankRes + agency;
+  const coverTotal   = totalStaff * AVG_COVER_PER_STAFF;
   const prodLoss     = totalLeavers * avgSalary * 0.25;
   const grandTotal   = recruitTotal + coverTotal + prodLoss;
   const perLeaver    = totalLeavers > 0 ? grandTotal / totalLeavers : 0;
