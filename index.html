@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NHS Staff Turnover Cost Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --nhs-blue: #003087;
+    --nhs-mid: #0072CE;
+    --nhs-light: #41B6E6;
+    --accent: #00A499;
+    --accent-light: #E8F7F6;
+    --warn: #DA291C;
+    --bg: #F5F6F8;
+    --card: #FFFFFF;
+    --text: #1A1F2E;
+    --muted: #5C6475;
+    --border: rgba(0,48,135,0.1);
+    --green: #006747;
+    --green-bg: #EBF5F0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    background: var(--nhs-blue);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: -80px;
+    width: 400px; height: 400px;
+    background: var(--nhs-mid);
+    border-radius: 50%;
+    opacity: 0.2;
+    pointer-events: none;
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem 2.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  .header-tag {
+    display: inline-block;
+    background: rgba(65,182,230,0.25);
+    color: var(--nhs-light);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+  }
+  .header h1 {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 300;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.02em;
+  }
+  .header h1 strong { font-weight: 500; }
+  .header p {
+    color: rgba(255,255,255,0.7);
+    font-size: 15px;
+    max-width: 520px;
+  }
+
+  /* Layout */
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nhs-mid);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Grid inputs */
+  .input-grid { display: grid; gap: 1rem; }
+  .input-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .input-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 580px) {
+    .input-grid.cols-2, .input-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 400px) {
+    .input-grid.cols-2, .input-grid.cols-3 { grid-template-columns: 1fr; }
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .field .hint {
+    font-size: 11px;
+    color: #9AA0AE;
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+  .input-wrap { position: relative; }
+  .input-wrap .prefix {
+    position: absolute;
+    left: 11px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .input-wrap .suffix {
+    position: absolute;
+    right: 11px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 9px 11px;
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--bg);
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type="number"]:focus { border-color: var(--nhs-mid); background: #fff; }
+  .input-wrap.has-prefix input { padding-left: 24px; }
+  .input-wrap.has-suffix input { padding-right: 36px; }
+
+  /* Results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .metric {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+  }
+  .metric .m-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 400;
+  }
+  .metric .m-value {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: -0.02em;
+  }
+  .metric .m-sub {
+    font-size: 11px;
+    color: #9AA0AE;
+    margin-top: 3px;
+  }
+
+  /* Big highlight */
+  .total-banner {
+    background: var(--nhs-blue);
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .total-banner .tb-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-size: 11px;
+  }
+  .total-banner .tb-value {
+    font-size: 2.2rem;
+    font-weight: 500;
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: -0.03em;
+  }
+  .total-banner .tb-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 4px;
+  }
+  .total-banner .tb-per {
+    text-align: right;
+  }
+  .total-banner .tb-per .tb-label { text-align: right; }
+  .total-banner .tb-per .tb-value { font-size: 1.4rem; }
+
+  /* CIP saving */
+  .cip-banner {
+    background: var(--green-bg);
+    border: 1.5px solid rgba(0,103,71,0.2);
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .cip-banner .cb-label {
+    font-size: 11px;
+    color: var(--green);
+    opacity: 0.75;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 4px;
+  }
+  .cip-banner .cb-value {
+    font-size: 2.2rem;
+    font-weight: 500;
+    color: var(--green);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: -0.03em;
+  }
+  .cip-banner .cb-sub {
+    font-size: 12px;
+    color: var(--green);
+    opacity: 0.7;
+    margin-top: 4px;
+  }
+  .cip-banner .cb-badge {
+    background: var(--green);
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.6rem 1.1rem;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Breakdown table */
+  .breakdown {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  .brow {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  .brow:last-child { border-bottom: none; }
+  .brow.header {
+    background: var(--bg);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+  .brow .num { text-align: right; font-family: 'DM Mono', monospace; }
+  .brow .saving { text-align: right; font-family: 'DM Mono', monospace; color: var(--green); font-weight: 500; }
+  .brow.footer { background: var(--bg); font-weight: 500; }
+
+  /* Assumptions */
+  .assumption-note {
+    font-size: 11px;
+    color: #9AA0AE;
+    line-height: 1.6;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .assumption-note a { color: var(--nhs-mid); text-decoration: none; }
+  .assumption-note a:hover { text-decoration: underline; }
+
+  /* Lead capture */
+  .lead-card {
+    background: linear-gradient(135deg, #003087 0%, #0072CE 100%);
+    border-radius: 12px;
+    padding: 2rem 1.75rem;
+    margin-top: 1.5rem;
+    color: #fff;
+  }
+  .lead-card h3 { font-size: 18px; font-weight: 500; margin-bottom: 0.5rem; }
+  .lead-card p { font-size: 13px; opacity: 0.75; margin-bottom: 1.25rem; }
+  .lead-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 500px) { .lead-form { grid-template-columns: 1fr; } }
+  .lead-form input {
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  .lead-form input::placeholder { color: rgba(255,255,255,0.45); }
+  .lead-form input:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.15); }
+  .lead-submit {
+    grid-column: 1 / -1;
+    padding: 11px;
+    background: #fff;
+    color: var(--nhs-blue);
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .lead-submit:hover { opacity: 0.9; }
+  .lead-success {
+    display: none;
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  /* Print / PDF */
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn svg { width: 15px; height: 15px; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 11px;
+    color: #9AA0AE;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+  footer a { color: var(--nhs-mid); text-decoration: none; }
+
+  /* Slider for turnover */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  input[type="range"] {
+    flex: 1;
+    accent-color: var(--nhs-mid);
+    height: 4px;
+    cursor: pointer;
+  }
+  .slider-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 40px;
+    text-align: right;
+    color: var(--text);
+  }
+
+  @media print {
+    .lead-card, .actions, footer { display: none; }
+    body { background: #fff; }
+    .card { border: 1px solid #ddd; break-inside: avoid; }
+    .total-banner { background: #003087 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cip-banner { background: #EBF5F0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="header-tag">NHS workforce &amp; finance</div>
+    <h1>Staff Turnover<br><strong>Cost Calculator</strong></h1>
+    <p>Quantify the true financial cost of staff turnover and model your CIP opportunity. Built on published NHS benchmarks.</p>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- Inputs: Workforce -->
+  <div class="card">
+    <div class="card-title">Workforce size</div>
+    <div class="input-grid cols-3">
+      <div class="field">
+        <label>Nursing headcount</label>
+        <input type="number" id="nurseCount" value="320" min="0" oninput="calc()">
+        <span class="hint">FTE or headcount</span>
+      </div>
+      <div class="field">
+        <label>Consultants</label>
+        <input type="number" id="consCount" value="85" min="0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Resident doctors</label>
+        <input type="number" id="resCount" value="120" min="0" oninput="calc()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Inputs: Turnover -->
+  <div class="card">
+    <div class="card-title">Turnover rates</div>
+    <div class="input-grid cols-2">
+      <div class="field">
+        <label>Current turnover rate</label>
+        <div class="slider-row">
+          <input type="range" id="turnoverSlider" min="5" max="25" value="12" step="0.5" oninput="syncSlider('turnover')">
+          <span class="slider-val" id="turnoverDisplay">12%</span>
+        </div>
+        <input type="number" id="turnoverRate" value="12" min="0" max="40" step="0.5" oninput="syncInput('turnover')" style="margin-top:6px;">
+      </div>
+      <div class="field">
+        <label>Target turnover rate</label>
+        <div class="slider-row">
+          <input type="range" id="targetSlider" min="3" max="20" value="9" step="0.5" oninput="syncSlider('target')">
+          <span class="slider-val" id="targetDisplay">9%</span>
+        </div>
+        <input type="number" id="targetRate" value="9" min="0" max="40" step="0.5" oninput="syncInput('target')" style="margin-top:6px;">
+      </div>
+    </div>
+    <p class="assumption-note">NHS trust turnover typically runs 8–15%. The NHS Long Term Workforce Plan aims to reduce leavers by 130,000 over 15 years through improved retention. <a href="https://www.england.nhs.uk/long-read/nhs-long-term-workforce-plan-2/" target="_blank">Source: NHS England</a></p>
+  </div>
+
+  <!-- Inputs: Bank & Agency -->
+  <div class="card">
+    <div class="card-title">Bank &amp; agency spend (£k per year)</div>
+    <div class="input-grid cols-3">
+      <div class="field">
+        <label>Bank — nursing</label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">£</span>
+          <input type="number" id="bankNurse" value="1449" min="0" oninput="calc()">
+        </div>
+        <span class="hint">thousands</span>
+      </div>
+      <div class="field">
+        <label>Bank — consultants</label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">£</span>
+          <input type="number" id="bankCons" value="1361" min="0" oninput="calc()">
+        </div>
+        <span class="hint">thousands</span>
+      </div>
+      <div class="field">
+        <label>Bank — resident doctors</label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">£</span>
+          <input type="number" id="bankRes" value="457" min="0" oninput="calc()">
+        </div>
+        <span class="hint">thousands</span>
+      </div>
+    </div>
+    <div class="input-grid cols-2" style="margin-top:1rem;">
+      <div class="field">
+        <label>Total agency spend</label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">£</span>
+          <input type="number" id="agencySpend" value="960" min="0" oninput="calc()">
+        </div>
+        <span class="hint">thousands per year</span>
+      </div>
+      <div class="field">
+        <label>Average salary — all staff</label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">£</span>
+          <input type="number" id="avgSalary" value="43" min="0" oninput="calc()">
+        </div>
+        <span class="hint">thousands (mean NHS FTE: £43.2k)</span>
+      </div>
+    </div>
+    <p class="assumption-note">Agency staff cost on average 20% more than NHS bank staff. NHS England agency spend was £2.44bn in 2020/21. <a href="https://commonslibrary.parliament.uk/research-briefings/cdp-2023-0038/" target="_blank">Source: House of Commons Library</a></p>
+  </div>
+
+  <!-- Inputs: Replacement costs -->
+  <div class="card">
+    <div class="card-title">Replacement cost per leaver (£)</div>
+    <div class="input-grid cols-3">
+      <div class="field">
+        <label>Nurse</label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">£</span>
+          <input type="number" id="nurseCost" value="12000" min="0" oninput="calc()">
+        </div>
+        <span class="hint">NHS benchmark: up to £12k</span>
+      </div>
+      <div class="field">
+        <label>Consultant</label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">£</span>
+          <input type="number" id="consCost" value="32000" min="0" oninput="calc()">
+        </div>
+        <span class="hint">est. ~35% of salary</span>
+      </div>
+      <div class="field">
+        <label>Resident doctor</label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">£</span>
+          <input type="number" id="resCost" value="18000" min="0" oninput="calc()">
+        </div>
+        <span class="hint">est. ~40% of salary</span>
+      </div>
+    </div>
+    <p class="assumption-note">Includes advertising, interviews, occupational health, DBS, induction, training, and the productivity dip during the first 3–6 months. Nurse figure sourced from <a href="https://www.nurses.co.uk/blog/the-complex-costs-of-failing-to-retain-nhs-staff/" target="_blank">NHS staff retention analysis</a>. Consultant and doctor figures are conservative estimates at 35–40% of mean salary.</p>
+  </div>
+
+  <!-- Results -->
+  <div id="results-section">
+    <div class="card">
+      <div class="card-title">Current annual cost of turnover</div>
+      <div class="results-grid">
+        <div class="metric">
+          <div class="m-label">Leavers per year</div>
+          <div class="m-value" id="m-leavers">—</div>
+          <div class="m-sub">across all groups</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Direct recruitment</div>
+          <div class="m-value" id="m-recruit">—</div>
+          <div class="m-sub">advertising, OH, DBS, induction</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Bank &amp; agency cover</div>
+          <div class="m-value" id="m-cover">—</div>
+          <div class="m-sub">your actual spend</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Productivity loss</div>
+          <div class="m-value" id="m-prod">—</div>
+          <div class="m-sub">25% salary × ramp-up period</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="total-banner">
+      <div>
+        <div class="tb-label">Total estimated annual cost</div>
+        <div class="tb-value" id="total-cost">—</div>
+        <div class="tb-sub" id="total-leavers-line">—</div>
+      </div>
+      <div class="tb-per">
+        <div class="tb-label">Cost per leaver</div>
+        <div class="tb-value" id="cost-per-leaver">—</div>
+        <div class="tb-sub">average across groups</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">CIP opportunity — breakdown</div>
+      <div class="breakdown" id="breakdown-table"></div>
+      <p class="assumption-note" id="reduction-note"></p>
+    </div>
+
+    <div class="cip-banner">
+      <div>
+        <div class="cb-label">Potential CIP saving per year</div>
+        <div class="cb-value" id="cip-saving">—</div>
+        <div class="cb-sub" id="cip-sub">—</div>
+      </div>
+      <div class="cb-badge" id="cip-badge">—</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" onclick="window.print()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print / Save as PDF
+      </button>
+      <button class="btn" onclick="copyLink()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span id="copy-btn-label">Copy link</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Lead capture -->
+  <div class="lead-card">
+    <h3>Want a full workforce cost analysis for your trust?</h3>
+    <p>Enter your details and we'll be in touch to discuss how a tailored turnover reduction programme could deliver a verifiable CIP for your organisation.</p>
+    <form class="lead-form" onsubmit="submitLead(event)">
+      <input type="text" id="lead-name" placeholder="Your name" required>
+      <input type="text" id="lead-role" placeholder="Job title">
+      <input type="email" id="lead-email" placeholder="NHS email address" required>
+      <input type="text" id="lead-trust" placeholder="Trust name">
+      <button type="submit" class="lead-submit">Request a full analysis →</button>
+    </form>
+    <div class="lead-success" id="lead-success">
+      ✓ Thanks — we'll be in touch within 48 hours.
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>Benchmarks: <a href="https://www.nurses.co.uk/blog/the-complex-costs-of-failing-to-retain-nhs-staff/" target="_blank">NHS Staff Retention Analysis</a> · <a href="https://commonslibrary.parliament.uk/research-briefings/cdp-2023-0038/" target="_blank">House of Commons Library</a> · <a href="https://www.england.nhs.uk/long-read/nhs-long-term-workforce-plan-2/" target="_blank">NHS Long Term Workforce Plan</a> · <a href="https://www.oleeo.com/blog/recruitment-costs-in-nhs/" target="_blank">Oleeo NHS Recruitment</a></p>
+  <p style="margin-top:6px;">This calculator provides estimates based on published benchmarks. Actual costs will vary by organisation. For a tailored analysis, contact us.</p>
+</footer>
+
+<script>
+function fmt(n) {
+  if (isNaN(n) || n === 0) return '—';
+  if (n >= 1000000) return '£' + (n/1000000).toFixed(1) + 'm';
+  if (n >= 1000) return '£' + Math.round(n/1000) + 'k';
+  return '£' + Math.round(n).toLocaleString();
+}
+
+function syncSlider(which) {
+  if (which === 'turnover') {
+    const v = document.getElementById('turnoverSlider').value;
+    document.getElementById('turnoverRate').value = v;
+    document.getElementById('turnoverDisplay').textContent = v + '%';
+  } else {
+    const v = document.getElementById('targetSlider').value;
+    document.getElementById('targetRate').value = v;
+    document.getElementById('targetDisplay').textContent = v + '%';
+  }
+  calc();
+}
+
+function syncInput(which) {
+  if (which === 'turnover') {
+    const v = document.getElementById('turnoverRate').value;
+    document.getElementById('turnoverSlider').value = v;
+    document.getElementById('turnoverDisplay').textContent = v + '%';
+  } else {
+    const v = document.getElementById('targetRate').value;
+    document.getElementById('targetSlider').value = v;
+    document.getElementById('targetDisplay').textContent = v + '%';
+  }
+  calc();
+}
+
+function calc() {
+  const nurseCount = +document.getElementById('nurseCount').value || 0;
+  const consCount  = +document.getElementById('consCount').value  || 0;
+  const resCount   = +document.getElementById('resCount').value   || 0;
+  const turnover   = (+document.getElementById('turnoverRate').value || 0) / 100;
+  const target     = (+document.getElementById('targetRate').value   || 0) / 100;
+  const bankNurse  = (+document.getElementById('bankNurse').value  || 0) * 1000;
+  const bankCons   = (+document.getElementById('bankCons').value   || 0) * 1000;
+  const bankRes    = (+document.getElementById('bankRes').value    || 0) * 1000;
+  const agency     = (+document.getElementById('agencySpend').value || 0) * 1000;
+  const avgSalary  = (+document.getElementById('avgSalary').value  || 0) * 1000;
+  const nurseCost  = +document.getElementById('nurseCost').value  || 0;
+  const consCost   = +document.getElementById('consCost').value   || 0;
+  const resCost    = +document.getElementById('resCost').value    || 0;
+
+  const nurseLeavers = Math.round(nurseCount * turnover);
+  const consLeavers  = Math.round(consCount  * turnover);
+  const resLeavers   = Math.round(resCount   * turnover);
+  const totalLeavers = nurseLeavers + consLeavers + resLeavers;
+
+  const recruitTotal = (nurseLeavers * nurseCost) + (consLeavers * consCost) + (resLeavers * resCost);
+  const coverTotal   = bankNurse + bankCons + bankRes + agency;
+  const prodLoss     = totalLeavers * avgSalary * 0.25;
+  const grandTotal   = recruitTotal + coverTotal + prodLoss;
+  const perLeaver    = totalLeavers > 0 ? grandTotal / totalLeavers : 0;
+
+  document.getElementById('m-leavers').textContent    = totalLeavers || '—';
+  document.getElementById('m-recruit').textContent    = fmt(recruitTotal);
+  document.getElementById('m-cover').textContent      = fmt(coverTotal);
+  document.getElementById('m-prod').textContent       = fmt(prodLoss);
+  document.getElementById('total-cost').textContent   = fmt(grandTotal);
+  document.getElementById('cost-per-leaver').textContent = fmt(perLeaver);
+  document.getElementById('total-leavers-line').textContent = totalLeavers + ' leavers · across nursing, consultants & resident doctors';
+
+  const reduction = turnover - target;
+  if (reduction <= 0 || totalLeavers === 0) {
+    document.getElementById('breakdown-table').innerHTML = '<div style="padding:1rem 1.25rem; font-size:13px; color:var(--muted);">Set a target rate lower than your current rate to see the CIP opportunity.</div>';
+    document.getElementById('cip-saving').textContent = '—';
+    document.getElementById('cip-sub').textContent = '';
+    document.getElementById('cip-badge').textContent = '—';
+    document.getElementById('reduction-note').textContent = '';
+    return;
+  }
+
+  const pct = reduction / turnover;
+  const savedLeavers  = Math.round(totalLeavers * pct);
+  const savedRecruit  = Math.round(recruitTotal * pct);
+  const savedCover    = Math.round(coverTotal   * pct);
+  const savedProd     = Math.round(prodLoss     * pct);
+  const totalSaving   = savedRecruit + savedCover + savedProd;
+  const pctSaving     = Math.round((totalSaving / grandTotal) * 100);
+
+  document.getElementById('breakdown-table').innerHTML = `
+    <div class="brow header">
+      <span>Cost component</span>
+      <span class="num">Current</span>
+      <span class="saving">Saving</span>
+      <span class="num">Remaining</span>
+    </div>
+    <div class="brow">
+      <span>Recruitment &amp; onboarding</span>
+      <span class="num">${fmt(recruitTotal)}</span>
+      <span class="saving">${fmt(savedRecruit)}</span>
+      <span class="num">${fmt(recruitTotal - savedRecruit)}</span>
+    </div>
+    <div class="brow">
+      <span>Bank &amp; agency cover</span>
+      <span class="num">${fmt(coverTotal)}</span>
+      <span class="saving">${fmt(savedCover)}</span>
+      <span class="num">${fmt(coverTotal - savedCover)}</span>
+    </div>
+    <div class="brow">
+      <span>Productivity loss</span>
+      <span class="num">${fmt(prodLoss)}</span>
+      <span class="saving">${fmt(savedProd)}</span>
+      <span class="num">${fmt(prodLoss - savedProd)}</span>
+    </div>
+    <div class="brow footer">
+      <span>Total</span>
+      <span class="num">${fmt(grandTotal)}</span>
+      <span class="saving">${fmt(totalSaving)}</span>
+      <span class="num">${fmt(grandTotal - totalSaving)}</span>
+    </div>
+  `;
+
+  document.getElementById('reduction-note').textContent =
+    `Reducing turnover from ${Math.round(turnover*100)}% to ${Math.round(target*100)}% means approximately ${savedLeavers} fewer leavers per year — a ${pctSaving}% reduction in total turnover costs.`;
+
+  document.getElementById('cip-saving').textContent = fmt(totalSaving);
+  document.getElementById('cip-sub').textContent = `${savedLeavers} fewer leavers · turnover ${Math.round(turnover*100)}% → ${Math.round(target*100)}%`;
+  document.getElementById('cip-badge').textContent = pctSaving + '% cost reduction';
+}
+
+function submitLead(e) {
+  e.preventDefault();
+  const name  = document.getElementById('lead-name').value;
+  const email = document.getElementById('lead-email').value;
+  const role  = document.getElementById('lead-role').value;
+  const trust = document.getElementById('lead-trust').value;
+  console.log('Lead:', { name, email, role, trust });
+  document.querySelector('.lead-form').style.display = 'none';
+  document.getElementById('lead-success').style.display = 'block';
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    document.getElementById('copy-btn-label').textContent = 'Copied!';
+    setTimeout(() => document.getElementById('copy-btn-label').textContent = 'Copy link', 2000);
+  });
+}
+
+calc();
+</script>
+</body>
+</html>
