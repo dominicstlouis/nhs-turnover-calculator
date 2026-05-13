@@ -598,6 +598,28 @@
       <div class="cb-badge" id="cip-badge">—</div>
     </div>
 
+    <div class="card">
+      <div class="card-title">Cost reduction scenarios</div>
+      <div class="results-grid" id="reduction-scenarios">
+        <div class="metric">
+          <div class="m-label">5% cost reduction</div>
+          <div class="m-value" id="scen-5">—</div>
+          <div class="m-sub" id="scen-5-sub">saving per year</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">10% cost reduction</div>
+          <div class="m-value" id="scen-10">—</div>
+          <div class="m-sub" id="scen-10-sub">saving per year</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">15% cost reduction</div>
+          <div class="m-value" id="scen-15">—</div>
+          <div class="m-sub" id="scen-15-sub">saving per year</div>
+        </div>
+      </div>
+      <p class="assumption-note">These figures show the saving from reducing total turnover costs by a fixed percentage — independent of the turnover rate target above. A 5% cost reduction may require only a small improvement in retention or efficiency.</p>
+    </div>
+
     <div class="actions">
       <button class="btn" onclick="window.print()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -701,6 +723,15 @@ function calc() {
   document.getElementById('total-cost').textContent   = fmt(grandTotal);
   document.getElementById('cost-per-leaver').textContent = fmt(perLeaver);
   document.getElementById('total-leavers-line').textContent = totalLeavers + ' leavers · across nursing, consultants & resident doctors';
+
+  // Cost reduction scenarios (5%, 10%, 15% of total cost)
+  [5, 10, 15].forEach(pct => {
+    const saving = grandTotal * pct / 100;
+    const impliedTurnoverReduction = grandTotal > 0 ? (saving / grandTotal * (turnover * 100)).toFixed(1) : '—';
+    document.getElementById('scen-' + pct).textContent = fmt(saving);
+    document.getElementById('scen-' + pct + '-sub').textContent =
+      grandTotal > 0 ? '≈ ' + impliedTurnoverReduction + 'pp turnover improvement' : 'saving per year';
+  });
 
   const reduction = turnover - target;
   if (reduction <= 0 || totalLeavers === 0) {
