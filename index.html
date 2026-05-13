@@ -435,6 +435,28 @@
     color: var(--text);
   }
 
+  /* Editable cost breakdown table */
+  .cost-input {
+    width: 100%;
+    text-align: right;
+    padding: 5px 8px;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    background: #fff;
+    border: 1.5px solid transparent;
+    border-radius: 6px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+  .cost-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .cost-input:focus { border-color: var(--nhs-mid); background: #fff; }
+  .cost-breakdown .brow { grid-template-columns: 2fr 1fr 1fr 1fr; }
+  .cost-breakdown .brow .num { padding: 2px 0; }
+  .role-total { font-family: 'DM Mono', monospace; font-weight: 500; color: var(--text); text-align: right; }
+
   @media print {
     .lead-card, .actions, footer { display: none; }
     body { background: #fff; }
@@ -513,33 +535,69 @@
   <!-- Inputs: Replacement costs -->
   <div class="card">
     <div class="card-title">Replacement cost per leaver (£)</div>
-    <div class="input-grid cols-3">
-      <div class="field">
-        <label>Nurse</label>
-        <div class="input-wrap has-prefix">
-          <span class="prefix">£</span>
-          <input type="number" id="nurseCost" value="12000" min="0" oninput="calc()">
-        </div>
-        <span class="hint">NHS benchmark: up to £12k</span>
+    <div class="breakdown cost-breakdown">
+      <div class="brow header">
+        <span>Cost component</span>
+        <span class="num">Nurse</span>
+        <span class="num">Consultant</span>
+        <span class="num">Resident doctor</span>
       </div>
-      <div class="field">
-        <label>Consultant</label>
-        <div class="input-wrap has-prefix">
-          <span class="prefix">£</span>
-          <input type="number" id="consCost" value="32000" min="0" oninput="calc()">
-        </div>
-        <span class="hint">est. ~35% of salary</span>
+      <div class="brow">
+        <span>Advertising</span>
+        <span class="num"><input type="number" class="cost-input nurse-cost" value="500"   min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input cons-cost"  value="3000"  min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input res-cost"   value="1000"  min="0" oninput="calcRoleCosts()"></span>
       </div>
-      <div class="field">
-        <label>Resident doctor</label>
-        <div class="input-wrap has-prefix">
-          <span class="prefix">£</span>
-          <input type="number" id="resCost" value="18000" min="0" oninput="calc()">
-        </div>
-        <span class="hint">est. ~40% of salary</span>
+      <div class="brow">
+        <span>Interviews</span>
+        <span class="num"><input type="number" class="cost-input nurse-cost" value="300"   min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input cons-cost"  value="1500"  min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input res-cost"   value="800"   min="0" oninput="calcRoleCosts()"></span>
+      </div>
+      <div class="brow">
+        <span>Occupational health</span>
+        <span class="num"><input type="number" class="cost-input nurse-cost" value="200"   min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input cons-cost"  value="400"   min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input res-cost"   value="300"   min="0" oninput="calcRoleCosts()"></span>
+      </div>
+      <div class="brow">
+        <span>DBS check</span>
+        <span class="num"><input type="number" class="cost-input nurse-cost" value="50"    min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input cons-cost"  value="50"    min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input res-cost"   value="50"    min="0" oninput="calcRoleCosts()"></span>
+      </div>
+      <div class="brow">
+        <span>Induction</span>
+        <span class="num"><input type="number" class="cost-input nurse-cost" value="500"   min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input cons-cost"  value="1500"  min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input res-cost"   value="1000"  min="0" oninput="calcRoleCosts()"></span>
+      </div>
+      <div class="brow">
+        <span>Training</span>
+        <span class="num"><input type="number" class="cost-input nurse-cost" value="1500"  min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input cons-cost"  value="4000"  min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input res-cost"   value="2000"  min="0" oninput="calcRoleCosts()"></span>
+      </div>
+      <div class="brow">
+        <span>Bank/agency cover (vacancy)</span>
+        <span class="num"><input type="number" class="cost-input nurse-cost" value="3000"  min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input cons-cost"  value="6000"  min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input res-cost"   value="4000"  min="0" oninput="calcRoleCosts()"></span>
+      </div>
+      <div class="brow">
+        <span>Productivity dip (3–6 months)</span>
+        <span class="num"><input type="number" class="cost-input nurse-cost" value="5950"  min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input cons-cost"  value="15550" min="0" oninput="calcRoleCosts()"></span>
+        <span class="num"><input type="number" class="cost-input res-cost"   value="8850"  min="0" oninput="calcRoleCosts()"></span>
+      </div>
+      <div class="brow footer">
+        <span>Total per leaver</span>
+        <span class="role-total" id="nurse-total">£12,000</span>
+        <span class="role-total" id="cons-total">£32,000</span>
+        <span class="role-total" id="res-total">£18,000</span>
       </div>
     </div>
-    <p class="assumption-note">Includes advertising, interviews, occupational health, DBS, induction, training, and the productivity dip during the first 3–6 months. Nurse figure sourced from <a href="https://www.nurses.co.uk/blog/the-complex-costs-of-failing-to-retain-nhs-staff/" target="_blank">NHS staff retention analysis</a>. Consultant and doctor figures are conservative estimates at 35–40% of mean salary.</p>
+    <p class="assumption-note">All figures are editable — adjust to reflect your trust's actual costs. Bank/agency cover here refers to the direct cost of filling that specific vacancy; ongoing staffing cover is modelled separately above. Productivity dip reflects the output loss during the first 3–6 months in post. Nurse benchmark sourced from <a href="https://www.nurses.co.uk/blog/the-complex-costs-of-failing-to-retain-nhs-staff/" target="_blank">NHS staff retention analysis</a>.</p>
   </div>
 
   <!-- Results -->
@@ -700,9 +758,10 @@ function calc() {
   const turnover   = (+document.getElementById('turnoverRate').value || 0) / 100;
   const target     = (+document.getElementById('targetRate').value   || 0) / 100;
   const avgSalary  = (+document.getElementById('avgSalary').value  || 0) * 1000;
-  const nurseCost  = +document.getElementById('nurseCost').value  || 0;
-  const consCost   = +document.getElementById('consCost').value   || 0;
-  const resCost    = +document.getElementById('resCost').value    || 0;
+  const sum = cls => Array.from(document.querySelectorAll(cls)).reduce((s,i) => s+(+i.value||0), 0);
+  const nurseCost = sum('.nurse-cost');
+  const consCost  = sum('.cons-cost');
+  const resCost   = sum('.res-cost');
 
   const totalStaff   = nurseCount + consCount + resCount;
   const nurseLeavers = Math.round(nurseCount * turnover);
@@ -790,6 +849,15 @@ function calc() {
   document.getElementById('cip-saving').textContent = fmt(totalSaving);
   document.getElementById('cip-sub').textContent = `${savedLeavers} fewer leavers · turnover ${Math.round(turnover*100)}% → ${Math.round(target*100)}%`;
   document.getElementById('cip-badge').textContent = pctSaving + '% cost reduction';
+}
+
+function calcRoleCosts() {
+  const sum = cls => Array.from(document.querySelectorAll(cls)).reduce((s,i) => s+(+i.value||0), 0);
+  const fmt2 = n => '£' + Math.round(n).toLocaleString();
+  document.getElementById('nurse-total').textContent = fmt2(sum('.nurse-cost'));
+  document.getElementById('cons-total').textContent  = fmt2(sum('.cons-cost'));
+  document.getElementById('res-total').textContent   = fmt2(sum('.res-cost'));
+  calc();
 }
 
 function submitLead(e) {
